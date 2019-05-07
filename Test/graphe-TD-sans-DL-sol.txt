@@ -1,0 +1,10 @@
+graphe-TD-sans-DL-data
+3
+1 8 3
+2 5 0
+3 3 0
+valid
+37
+1000
+resolu a la main
+Olivier - on connait une meilleure solution
