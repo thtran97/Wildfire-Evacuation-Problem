@@ -45,8 +45,22 @@ def read_data(filename) :
                 data = list(map(lambda x : int(x),line.split()))
                 graph.append(data)
       
+    used_edges = set()
+    new_graph = []
+    for eva_node in eva_tree : 
+        route_list = [eva_node[0]] + eva_node[4:]
+        for i in range(eva_node[3]) : 
+            if route_list[i] < route_list[i+1] : 
+                used_edges.add((route_list[i],route_list[i+1]))
+            else :
+                used_edges.add((route_list[i+1],route_list[i]))
+#            print((route_list[i],route_list[i+1]))
+#    print(used_edges)
+    for edges in graph : 
+        if (edges[0],edges[1]) in used_edges :
+            new_graph.append(edges)       
             
-    return eva_tree,graph,nb_node
+    return eva_tree,new_graph,nb_node
 
 def print_data(filename):
     eva_tree,graph,nb_nodes = read_data(filename)
@@ -131,7 +145,7 @@ def get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH) :
     for edge in GRAPH :
         edge_cap = edge[-1]
 #         print('max cap of edge [{}-{}] : {}'.format(edge[0],edge[1],edge_cap))
-        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(40,edge_cap))
+        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(200,edge_cap))
 #         print(ressources)
    
     tasks = {}
