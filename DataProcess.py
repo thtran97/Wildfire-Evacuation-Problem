@@ -207,12 +207,13 @@ def get_borne_inf(LIST_EVA_NODES,EVA_TREE,GRAPH) :
 def get_borne_sup(LIST_EVA_NODES,EVA_TREE,GRAPH) :
 #    ORDERED_LIST_EVA_NODES = sorted(LIST_EVA_NODES,key = lambda item : get_duration(item,EVA_TREE,GRAPH))    
 #    print(ORDERED_LIST_EVA_NODES)
-    RANDOM_LIST = random.choices(LIST_EVA_NODES,k=len(LIST_EVA_NODES))
-    endtime,sol = get_end_time(RANDOM_LIST,EVA_TREE,GRAPH)
+#    RANDOM_LIST = random.choices(LIST_EVA_NODES,k=len(LIST_EVA_NODES))
+    random.shuffle(LIST_EVA_NODES)
+    endtime,sol = get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH)
     return endtime,sol
 
-def create_solution_file(solution,end_time) : 
-    file  = open('data/wildfire_sup.solution','w')
+def create_solution_file(filename,solution,end_time) : 
+    file  = open(filename,'w')
     file.write('inputTD\n')
     file.write('{}\n'.format(len(solution)))
     for item in solution : 
