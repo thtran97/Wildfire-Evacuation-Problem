@@ -9,6 +9,50 @@ def create_ordered_list_of(solution) :
     ordered_sol = [item[0] for item in ordered_sol]
     return ordered_sol
 
+def get_conflict_arc(l1, l2):
+    res = []
+    for item1 in l1:
+        if item1 in l2:
+            res.append(item1)
+    return res
+
+def get_non_conflict_list(x, LIST_EVA_NODES,EVA_TREE,GRAPH):
+    ok = 1
+    res = []
+    lx = get_task(x,EVA_TREE,GRAPH,eva_rate=None)[1]
+    rate_x = get_task(x,EVA_TREE,GRAPH,eva_rate=None)[2]
+    for node in LIST_EVA_NODES:
+        #print('Current checked node : ' + str(node))
+        if x != node:
+            #print('OK1 is : ' + str(ok))
+            ln = get_task(node,EVA_TREE,GRAPH,eva_rate=None)[1]
+            rate_n = get_task(node,EVA_TREE,GRAPH,eva_rate=None)[2]
+            lc = get_conflict_arc(lx, ln)
+            if(len(lc) == 1):
+                res.append(node)
+            else:
+                for i in range(len(lc)-1):
+                    cap = get_edge_info(lc[i], lc[i+1], GRAPH)[2]
+                    #print('Current cap is : ' + str(cap))
+                    #print('rate_x + rate_n = ' + str(rate_x + rate_n))
+                    if (cap < rate_x + rate_n):
+                        #print('Conflict at arc [' + str(lc[i]) + ' ' + str(lc[i+1]) + ']') 
+                        ok = 0
+                        break
+            #print('OK2 is : ' + str(ok))
+            if (ok == 1):
+                res.append(node)
+            ok = 1
+    return res
+                    
+#def get_removed(l1, l2):
+#    for item in l1:
+#        if not(item in l2):
+#            res = item
+#            break
+#    return res
+
+
 #exchange positions of 2 nodes in the ordered list  -> a neigbor 
 def get_neighbors_of(ordered_sol) : 
     neighbor_list = []
@@ -20,7 +64,19 @@ def get_neighbors_of(ordered_sol) :
             neighbor_list.append(new_sol)
     return neighbor_list
 
- 
+def get_neighbors_of2(ordered_sol,EVA_TREE,GRAPH) : 
+    neighbor_list = []
+    for i in range(len(ordered_sol)) :
+        l = get_non_conflict_list(ordered_sol[i],ordered_sol,EVA_TREE,GRAPH)
+        for j in range(i+1,len(ordered_sol)) :
+            if not(ordered_sol[j] in l): 
+                new_sol = np.copy(ordered_sol)
+                new_sol[i] = ordered_sol[j]
+                new_sol[j] = ordered_sol[i]
+                neighbor_list.append(new_sol)
+    return neighbor_list
+
+#Local Search algorithm using get_end_time_v1 and get_neighbor_v1
 def LocalSearchRun(init_solution,EVA_TREE,GRAPH,n_iter=10) : 
     ordered_list_of_sol = create_ordered_list_of(init_solution)
     endtime = get_end_time(ordered_list_of_sol,EVA_TREE,GRAPH)[0]
@@ -51,20 +107,22 @@ def LocalSearchRun(init_solution,EVA_TREE,GRAPH,n_iter=10) :
         ite +=1 
     return endtime,best_solution
 
+#Local Search algorithm using get_end_time_v1 and get_neighbor_v2
 def LocalSearchRun2(init_solution,EVA_TREE,GRAPH,n_iter=10) : 
     ordered_list_of_sol = create_ordered_list_of(init_solution)
-    endtime,best_solution = get_end_time_2(ordered_list_of_sol,EVA_TREE,GRAPH)
-    
+    endtime = get_end_time(ordered_list_of_sol,EVA_TREE,GRAPH)[0]
+
+    best_solution =  init_solution
     ite = 0
     not_move = 0
     previous_time = endtime
     while (ite < n_iter and not_move < 5) :
         print("Iteration {}:".format(ite))
         print(ordered_list_of_sol,' => ',endtime)
-        neighbor_list = get_neighbors_of(ordered_list_of_sol)
+        neighbor_list = get_neighbors_of2(ordered_list_of_sol, EVA_TREE, GRAPH)
         for neighbor in neighbor_list :  
             ## find the best neighbor
-            end,current_sol = get_end_time_2(neighbor,EVA_TREE,GRAPH)
+            end,current_sol = get_end_time(neighbor,EVA_TREE,GRAPH)
             if end < endtime :
                 ordered_list_of_sol = neighbor 
                 endtime = end
@@ -78,6 +136,25 @@ def LocalSearchRun2(init_solution,EVA_TREE,GRAPH,n_iter=10) :
             not_move += 1
                 
         ite +=1 
+    return endtime,best_solution
+
+#Local Search algorithm using get_end_time_v2 and get_neighbor_v1
+def LocalSearchRun3(init_solution,EVA_TREE,GRAPH,n_iter=10) : 
+    ordered_sol = create_ordered_list_of(init_solution)
+    endtime = get_end_time_2(ordered_sol,EVA_TREE,GRAPH)[0]
+    print(ordered_sol,' => ',endtime)
+    best_solution =  init_solution
+    ite = 0
+    while (ite < n_iter) :
+        neighbor_list = get_neighbors_of(ordered_sol)
+        for sol in neighbor_list :  
+#            print('-----{}------'.format(sol))
+            if get_end_time(sol,EVA_TREE,GRAPH)[0] <endtime :
+                ordered_sol = sol 
+                endtime,best_solution = get_end_time_2(sol,EVA_TREE,GRAPH)
+                print(sol,' => ',endtime)
+        ite +=1 
+
     return endtime,best_solution
 
 def LocalSearchRandomStart(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
