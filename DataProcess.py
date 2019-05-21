@@ -150,7 +150,7 @@ def get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH) :
    
     tasks = {}
     for i in LIST_EVA_NODES : 
-        nb_evacuees,max_rate,route_length,route_list = get_eva_node_info(i,EVA_TREE)
+#        nb_evacuees,max_rate,route_length,route_list = get_eva_node_info(i,EVA_TREE)
         start = 0
         duration,demande_res,eva_rate = get_task(i,EVA_TREE,GRAPH)
         current = i
@@ -199,6 +199,108 @@ def get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH) :
     solution = create_solution(tasks,LIST_EVA_NODES)
     
     return end_time,solution
+
+def get_end_time_2(LIST_EVA_NODES,EVA_TREE,GRAPH) : 
+    ressources = {}
+    for edge in GRAPH :
+        edge_cap = edge[-1]
+#         print('max cap of edge [{}-{}] : {}'.format(edge[0],edge[1],edge_cap))
+        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(200,edge_cap))
+#         print(ressources)
+   
+    tasks = {}
+    for i in LIST_EVA_NODES : 
+        nb_evacuees,max_rate,route_length,route_list = get_eva_node_info(i,EVA_TREE)
+        start = 0
+        duration,demande_res,eva_rate = get_task(i,EVA_TREE,GRAPH)
+        current = i
+#        print(eva_rate)
+        for j in demande_res : 
+#            print('Evacuees from {} at node {}'.format(i,j))
+            nxt = j
+            if current != nxt :
+                _,length,edge_cap = get_edge_info(current,nxt,GRAPH)
+                
+                #Second solution variable 
+                start2= start
+                error_rate = 0
+                end_time2 = 10000000
+                
+                cumul_time = 0
+                ok = False
+                while (not ok) :
+                    if current < nxt :
+                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
+                    else : 
+                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
+                    dispo[start:start+duration] -= eva_rate
+#                     print('dispo[{}-{}]={}'.format(current,nxt,dispo))
+                    check_dispo = [item for item in dispo if item < 0]
+                    
+#                     print(check_dispo)
+                    if (len(check_dispo) > 0) :
+                        error_rate = check_dispo[0]
+#                         print('OVERLOAD')
+                        start += len(check_dispo) 
+                        ok = False
+                        
+                        cumul_time += len(check_dispo)
+                        
+                    else : 
+                        ok = True
+                
+                        #here there is no more conflict
+                        #First solution : start,end=start + duration, rate = eva_rate
+                        #Second solution : 
+                        eva_rate2 = eva_rate + error_rate
+                        end_time1 = start + duration
+                        #print(eva_rate2)
+                        if (eva_rate2 > 0 and start2 + math.ceil(nb_evacuees / eva_rate2) < end_time1) :
+                            #print("choose 2")
+                            #if solutio 2 is better
+                            #no change time start of the previous nodes
+                            #decrease the rate
+                            start = start2
+                            eva_rate = eva_rate2
+                            duration = math.ceil(nb_evacuees / eva_rate2)
+                            if current < nxt :
+                                dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
+                            else : 
+                                dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
+                            dispo[start:start+duration] -= eva_rate
+                            # Change the eva_rate of the previous nodes 
+                            for keys in tasks :
+                                if 'Evacuees from {}'.format(i) in keys :
+                                    tasks[keys][-1] = eva_rate
+                                    tasks[keys][2] = duration 
+                        else :        
+                            #print("choose 1")
+                            #if solution 1 is better
+                            # Change the time start of the previous nodes 
+                            for keys in tasks :
+                                if 'Evacuees from {}'.format(i) in keys :
+                                    tasks[keys][0] += cumul_time
+                                
+                        #update ressource
+                        ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
+                tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,eva_rate])
+        
+                start += length
+            
+            current = nxt
+            
+#         print('ressources info after evacuation of node {} with rate{} = {}'.format(i,max_rate,ressources))
+        
+#    print('tasks = ', tasks)
+#    print('Nb of tasks = ',len(tasks))
+    print("okk")
+    end_time = np.max([tasks[keys][1] for keys in tasks])
+#     print([tasks[keys][1] for keys in tasks])
+#    print('End time is : ',end_time)
+    solution = create_solution(tasks,LIST_EVA_NODES)
+    
+    return end_time,solution
+
 
 def get_borne_inf(LIST_EVA_NODES,EVA_TREE,GRAPH) : 
     eva_time = [get_duration(item,EVA_TREE,GRAPH) for item in LIST_EVA_NODES]

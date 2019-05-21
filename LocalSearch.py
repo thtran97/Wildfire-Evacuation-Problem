@@ -52,21 +52,32 @@ def LocalSearchRun(init_solution,EVA_TREE,GRAPH,n_iter=10) :
     return endtime,best_solution
 
 def LocalSearchRun2(init_solution,EVA_TREE,GRAPH,n_iter=10) : 
-    ordered_sol = create_ordered_list_of(init_solution)
-    endtime = get_end_time(ordered_sol,EVA_TREE,GRAPH)[0]
-    print(ordered_sol,' => ',endtime)
-    best_solution =  init_solution
+    ordered_list_of_sol = create_ordered_list_of(init_solution)
+    endtime,best_solution = get_end_time_2(ordered_list_of_sol,EVA_TREE,GRAPH)
+    
     ite = 0
-    while (ite < n_iter) :
-        neighbor_list = get_neighbors_of(ordered_sol)
-        for sol in neighbor_list :  
-#            print('-----{}------'.format(sol))
-            if get_end_time(sol,EVA_TREE,GRAPH)[0] <endtime :
-                ordered_sol = sol 
-                endtime,best_solution = get_end_time(sol,EVA_TREE,GRAPH)
-                print(sol,' => ',endtime)
+    not_move = 0
+    previous_time = endtime
+    while (ite < n_iter and not_move < 5) :
+        print("Iteration {}:".format(ite))
+        print(ordered_list_of_sol,' => ',endtime)
+        neighbor_list = get_neighbors_of(ordered_list_of_sol)
+        for neighbor in neighbor_list :  
+            ## find the best neighbor
+            end,current_sol = get_end_time_2(neighbor,EVA_TREE,GRAPH)
+            if end < endtime :
+                ordered_list_of_sol = neighbor 
+                endtime = end
+                best_solution = current_sol
+                #print(neighbor,' => ',endtime)
+        
+        if endtime != previous_time : 
+            not_move = 0
+            previous_time = endtime
+        else :
+            not_move += 1
+                
         ite +=1 
-
     return endtime,best_solution
 
 def LocalSearchRandomStart(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
