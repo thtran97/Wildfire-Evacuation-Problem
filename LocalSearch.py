@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import time
 from DataProcess import *
 
 
@@ -29,18 +30,25 @@ def get_non_conflict_list(x, LIST_EVA_NODES,EVA_TREE,GRAPH):
             rate_n = get_task(node,EVA_TREE,GRAPH,eva_rate=None)[2]
             lc = get_conflict_arc(lx, ln)
             if(len(lc) == 1):
+                #print('This node: ' + str(node) + ' has no conflict node rather than the final node')
                 res.append(node)
             else:
                 for i in range(len(lc)-1):
                     cap = get_edge_info(lc[i], lc[i+1], GRAPH)[2]
                     #print('Current cap is : ' + str(cap))
                     #print('rate_x + rate_n = ' + str(rate_x + rate_n))
+                    #if (cap >= rate_x + rate_n):
+                    #    print('This node: ' + str(node) + ' has Conflict at arc [' + str(lc[i]) + ' ' + str(lc[i+1]) + ']')
+                    #    print('Where cap is : ' + str(cap))
+                    #    print('And sum is : ' + str(rate_x + rate_n))
                     if (cap < rate_x + rate_n):
-                        #print('Conflict at arc [' + str(lc[i]) + ' ' + str(lc[i+1]) + ']') 
+                    #else:
+                        #print('This node: ' + str(node) + ' is conflicted')
                         ok = 0
                         break
             #print('OK2 is : ' + str(ok))
             if (ok == 1):
+                #print('This node: ' + str(node) + ' passed the conflict route test')
                 res.append(node)
             ok = 1
     return res
@@ -178,4 +186,32 @@ def LocalSearchRandomStart(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
     best_solution = sol_list[index[0]]
     
     return endtime,best_solution
+
+#Local Search Random Start algorithm using get_neighbor_v2, returning algo name and exec time
+def LocalSearchRandomStart2(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
+    exc_time = time.time()
+    
+    algo_name = 'LocalSearchRandomStart'
+    
+    LIST_EVA_NODES = [item[0] for item in EVA_TREE]
+    
+    sol_list = []
+    endtime_list = []
+    
+    for i in range(n_start_points) :
+        random.shuffle(LIST_EVA_NODES)
+        _,init_solution = get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH)
+        print("---------------------------Start n.{}---------------------------".format(i+1))
+        endtime,best_solution = LocalSearchRun2(init_solution,EVA_TREE,GRAPH,n_iter)
+        sol_list.append(best_solution)
+        endtime_list.append(endtime)
+        print("----------------------------------------------------------------")
+    
+    endtime = np.min(endtime_list)
+    index = [i for i,j in enumerate(endtime_list) if j==endtime]
+    best_solution = sol_list[index[0]]
+    
+    exc_time = time.time() - exc_time
+    
+    return endtime,best_solution,algo_name,exc_time
     
