@@ -15,12 +15,12 @@ def read_data(filename) :
         for line in fp :
           
             if (line.find('evacuation info') != -1):
-                print('Add evacuation info')             
+                #print('Add evacuation info')             
                 mode = 1
                 start = 0
             
             elif (line.find('graph') != -1):
-                print('Add graph info')             
+                #print('Add graph info')             
                 mode = 2
                 start = 0
             
