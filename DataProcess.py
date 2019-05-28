@@ -124,8 +124,8 @@ def get_task(node_id,EVA_TREE,GRAPH,eva_rate=None) :
 def create_solution(TASKS,LIST_EVA_NODES) :
     solution = []
     for i in LIST_EVA_NODES : 
-        [Si] = [TASKS[keys] for keys in TASKS if 'Evacuees from {} at edge [{}-'.format(i,i) in keys ]
-        solution.append([i,Si[-1],Si[0]])
+        Si = [TASKS[key] for key in TASKS if ('Evacuees from {} at edge [{}-'.format(i,i) in key or ('Evacuees from {} at edge'.format(i) in key and '-{}]'.format(i) in key))]
+        solution.append([i,Si[0][-1],Si[0][0]])
     
     return solution
 
@@ -148,7 +148,7 @@ def get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH) :
     for edge in GRAPH :
         edge_cap = edge[-1]
 #         print('max cap of edge [{}-{}] : {}'.format(edge[0],edge[1],edge_cap))
-        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(200,edge_cap))
+        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(500,edge_cap))
 #         print(ressources)
    
     tasks = {}
@@ -182,6 +182,7 @@ def get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH) :
                         for keys in tasks :
                             if 'Evacuees from {}'.format(i) in keys :
                                 tasks[keys][0] += len(check_dispo)
+                                tasks[keys][1] += len(check_dispo)
                     else : 
                         ok = True
                         ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
@@ -194,13 +195,18 @@ def get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH) :
 #         print('ressources info after evacuation of node {} with rate{} = {}'.format(i,max_rate,ressources))
         
 #    print('tasks = ', tasks)
-#    print('Nb of tasks = ',len(tasks))
+#     print('Nb of tasks = ',len(tasks))
     
     end_time = np.max([tasks[keys][1] for keys in tasks])
 #     print([tasks[keys][1] for keys in tasks])
 #    print('End time is : ',end_time)
     solution = create_solution(tasks,LIST_EVA_NODES)
     
+        
+#     for i  in LIST_EVA_NODES :
+#         for key in tasks : 
+#             if  ('Evacuees from {} at edge [{}-'.format(i,i) in key or ('Evacuees from {} at edge'.format(i) in key and '-{}]'.format(i) in key)) :
+#                 print(i,key, tasks[key])
     return end_time,solution
 
 def get_end_time_2(LIST_EVA_NODES,EVA_TREE,GRAPH) : 
@@ -208,7 +214,7 @@ def get_end_time_2(LIST_EVA_NODES,EVA_TREE,GRAPH) :
     for edge in GRAPH :
         edge_cap = edge[-1]
 #         print('max cap of edge [{}-{}] : {}'.format(edge[0],edge[1],edge_cap))
-        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(200,edge_cap))
+        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(500,edge_cap))
 #         print(ressources)
    
     tasks = {}
@@ -304,9 +310,81 @@ def get_end_time_2(LIST_EVA_NODES,EVA_TREE,GRAPH) :
     
     return end_time,solution
 
+def get_end_time_3(LIST_EVA_NODES,EVA_TREE,GRAPH) : 
+    error = False
+    ressources = {}
+    for edge in GRAPH :
+        edge_cap = edge[-1]
+#         print('max cap of edge [{}-{}] : {}'.format(edge[0],edge[1],edge_cap))
+        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(500,edge_cap))
+#         print(ressources)
+   
+    tasks = {}
+    for i in LIST_EVA_NODES : 
+#        nb_evacuees,max_rate,route_length,route_list = get_eva_node_info(i,EVA_TREE)
+        start = 0
+        duration,demande_res,eva_rate = get_task(i,EVA_TREE,GRAPH)
+        current = i
+#        print(eva_rate)
+        for j in demande_res : 
+#             print('Evacuees from {} at node {}'.format(i,j))
+            nxt = j
+            if current != nxt :
+                due_date,length,edge_cap = get_edge_info(current,nxt,GRAPH)
+
+                ok = False
+                while (not ok) :
+                    if current < nxt :
+                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
+                    else : 
+                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
+                    dispo[start:start+duration] -= eva_rate
+#                     print('dispo[{}-{}]={}'.format(current,nxt,dispo))
+                    check_dispo = [item for item in dispo if item < 0]
+#                     print(check_dispo)
+                    if (len(check_dispo) > 0) :        
+#                         print('OVERLOAD')
+                        start += len(check_dispo) 
+                        ok = False
+                        # Change the time start of the previous nodes 
+                        for keys in tasks :
+                            if 'Evacuees from {}'.format(i) in keys :
+                                tasks[keys][0] += len(check_dispo)
+                                tasks[keys][1] += len(check_dispo)
+                    else : 
+                        ok = True
+                        ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
+                if (start + duration > due_date):
+                    error = True
+                tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,eva_rate])
+        
+                start += length
+            current = nxt
+            
+#         print('ressources info after evacuation of node {} with rate{} = {}'.format(i,max_rate,ressources))
+        
+#    print('tasks = ', tasks)
+#     print('Nb of tasks = ',len(tasks))
+    
+    end_time = np.max([tasks[keys][1] for keys in tasks])
+#     print([tasks[keys][1] for keys in tasks])
+#    print('End time is : ',end_time)
+    solution = create_solution(tasks,LIST_EVA_NODES)
+    
+        
+#     for i  in LIST_EVA_NODES :
+#         for key in tasks : 
+#             if  ('Evacuees from {} at edge [{}-'.format(i,i) in key or ('Evacuees from {} at edge'.format(i) in key and '-{}]'.format(i) in key)) :
+#                 print(i,key, tasks[key])
+    if error:
+        end_time = 999999
+        
+    return end_time,solution
+
 
 def get_borne_inf(LIST_EVA_NODES,EVA_TREE,GRAPH) : 
     eva_time = [get_duration(item,EVA_TREE,GRAPH) for item in LIST_EVA_NODES]
+    print (eva_time)
     return np.max(eva_time)
 
 def get_borne_sup(LIST_EVA_NODES,EVA_TREE,GRAPH) :
@@ -351,6 +429,7 @@ def create_solution_file2(source,solution,end_time) :
     file.write('\n')
     file.write('{}\n'.format(len(solution)))
     for item in eva_tree : 
+        get
         file.write('{} {} {}\n'.format(item[0],item[2],find_starttime(item[0], solution)))
     file.write('valid\n')
     file.write('{}\n'.format(end_time))
@@ -365,7 +444,7 @@ def create_solution_file3(source,solution,end_time,algo_name,exc_time) :
     filename = solution_path + source + '.solution'
     sourcename = source_path + source + '.full'
     
-    eva_tree = read_data(sourcename)[0]
+    eva_tree, graph, _ = read_data(sourcename)
     
     file = open(filename,'w')
     
@@ -373,7 +452,8 @@ def create_solution_file3(source,solution,end_time,algo_name,exc_time) :
     file.write('\n')
     file.write('{}\n'.format(len(solution)))
     for item in eva_tree : 
-        file.write('{} {} {}\n'.format(item[0],item[2],find_starttime(item[0], solution)))
+        rate = get_task(item[0],eva_tree,graph,eva_rate=None)[2]
+        file.write('{} {} {}\n'.format(item[0],rate,find_starttime(item[0], solution)))
     file.write('valid\n')
     file.write('{}\n'.format(end_time))
     file.write(str(exc_time))
