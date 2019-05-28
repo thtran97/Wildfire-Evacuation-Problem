@@ -66,7 +66,7 @@ def get_end_time_3(LIST_EVA_NODES,EVA_TREE,GRAPH) :
         
                 start += length
                 if start >= max_start:
-                    print('Due Date violated!')
+                    print('Due Date violated for node !', i)
                     error = True
             current = nxt
             
