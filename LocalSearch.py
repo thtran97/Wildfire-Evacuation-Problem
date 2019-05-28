@@ -61,6 +61,7 @@ def get_non_conflict_list(x, LIST_EVA_NODES,EVA_TREE,GRAPH):
 #    return res
 
 
+
 #exchange positions of 2 nodes in the ordered list  -> a neigbor 
 def get_neighbors_of(ordered_sol) : 
     neighbor_list = []
@@ -165,6 +166,8 @@ def LocalSearchRun3(init_solution,EVA_TREE,GRAPH,n_iter=10) :
 
     return endtime,best_solution
 
+
+
 def LocalSearchRandomStart(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
     
     LIST_EVA_NODES = [item[0] for item in EVA_TREE]
@@ -200,7 +203,7 @@ def LocalSearchRandomStart2(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
     
     for i in range(n_start_points) :
         random.shuffle(LIST_EVA_NODES)
-        _,init_solution = get_end_time(LIST_EVA_NODES,EVA_TREE,GRAPH)
+        _,init_solution = get_end_time_3(LIST_EVA_NODES,EVA_TREE,GRAPH)
         print("---------------------------Start n.{}---------------------------".format(i+1))
         endtime,best_solution = LocalSearchRun2(init_solution,EVA_TREE,GRAPH,n_iter)
         sol_list.append(best_solution)
