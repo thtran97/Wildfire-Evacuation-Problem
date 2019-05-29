@@ -61,6 +61,7 @@ def get_non_conflict_list(x, LIST_EVA_NODES,EVA_TREE,GRAPH):
 #    return res
 
 
+
 #exchange positions of 2 nodes in the ordered list  -> a neigbor 
 def get_neighbors_of(ordered_sol) : 
     neighbor_list = []
@@ -165,6 +166,7 @@ def LocalSearchRun3(init_solution,EVA_TREE,GRAPH,n_iter=10) :
 
     return endtime,best_solution
 
+<<<<<<< HEAD
 #Local Search algorithm using get_end_time_v3 and get_neighbor_v2
 def LocalSearchRun4(init_solution,EVA_TREE,GRAPH,n_iter=10) : 
     ordered_list_of_sol = create_ordered_list_of(init_solution)
@@ -195,6 +197,9 @@ def LocalSearchRun4(init_solution,EVA_TREE,GRAPH,n_iter=10) :
                 
         ite +=1 
     return endtime,best_solution
+=======
+
+>>>>>>> 2308983af346637eb5bf09be5ea0c8a1eeea042b
 
 def LocalSearchRandomStart(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
     
