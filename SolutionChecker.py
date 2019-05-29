@@ -102,7 +102,7 @@ def verify_solution(data_path,solution_path) :
                 else :
                     ressources['Cap of edge[{}-{}]'.format(x,y)] = dispo
             
-                if (start + duration > due_date-length) : 
+                if (start + duration > due_date) : 
                     result = False
                     print(start + duration)
                     print(due_date)

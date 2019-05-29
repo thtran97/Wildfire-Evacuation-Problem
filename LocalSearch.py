@@ -166,7 +166,6 @@ def LocalSearchRun3(init_solution,EVA_TREE,GRAPH,n_iter=10) :
 
     return endtime,best_solution
 
-<<<<<<< HEAD
 #Local Search algorithm using get_end_time_v3 and get_neighbor_v2
 def LocalSearchRun4(init_solution,EVA_TREE,GRAPH,n_iter=10) : 
     ordered_list_of_sol = create_ordered_list_of(init_solution)
@@ -183,6 +182,7 @@ def LocalSearchRun4(init_solution,EVA_TREE,GRAPH,n_iter=10) :
         for neighbor in neighbor_list :  
             ## find the best neighbor
             end,current_sol = get_end_time_3(neighbor,EVA_TREE,GRAPH)
+            print('Endtime is ', end)
             if end < endtime :
                 ordered_list_of_sol = neighbor 
                 endtime = end
@@ -197,9 +197,7 @@ def LocalSearchRun4(init_solution,EVA_TREE,GRAPH,n_iter=10) :
                 
         ite +=1 
     return endtime,best_solution
-=======
 
->>>>>>> 2308983af346637eb5bf09be5ea0c8a1eeea042b
 
 def LocalSearchRandomStart(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
     
@@ -238,7 +236,7 @@ def LocalSearchRandomStart2(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
         random.shuffle(LIST_EVA_NODES)
         _,init_solution = get_end_time_3(LIST_EVA_NODES,EVA_TREE,GRAPH)
         print("---------------------------Start n.{}---------------------------".format(i+1))
-        endtime,best_solution = LocalSearchRun2(init_solution,EVA_TREE,GRAPH,n_iter)
+        endtime,best_solution = LocalSearchRun4(init_solution,EVA_TREE,GRAPH,n_iter)
         sol_list.append(best_solution)
         endtime_list.append(endtime)
         print("----------------------------------------------------------------")
