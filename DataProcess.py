@@ -332,7 +332,6 @@ def get_latest_starttime(node,EVA_TREE,GRAPH):
 
 
 def get_end_time_3(LIST_EVA_NODES,EVA_TREE,GRAPH) : 
-    error = False
     ressources = {}
     for edge in GRAPH :
         edge_cap = edge[-1]
@@ -348,12 +347,15 @@ def get_end_time_3(LIST_EVA_NODES,EVA_TREE,GRAPH) :
         max_start = get_latest_starttime(i,EVA_TREE,GRAPH)
         current = i
 #        print(eva_rate)
+        #print('-------------Start at {} -------------'.format(i))
+
         for j in demande_res : 
 #             print('Evacuees from {} at node {}'.format(i,j))
             nxt = j
+           
             if current != nxt :
                 due_date,length,edge_cap = get_edge_info(current,nxt,GRAPH)
-
+                #print('check at edge [{}-{}]'.format(current,nxt))
                 ok = False
                 while (not ok) :
                     if current < nxt :
@@ -365,34 +367,46 @@ def get_end_time_3(LIST_EVA_NODES,EVA_TREE,GRAPH) :
                     check_dispo = [item for item in dispo if item < 0]
 #                     print(check_dispo)
                     if (len(check_dispo) > 0) :        
-#                         print('OVERLOAD')
+                        #print('OVERLOAD')
                         start += len(check_dispo) 
                         ok = False
                         # Change the time start of the previous nodes 
                         for keys in tasks :
                             if 'Evacuees from {}'.format(i) in keys :
+                                
                                 tasks[keys][0] += len(check_dispo)
-                                tasks[keys][1] += len(check_dispo)
+                                
+
+                                #print("I update ",keys, " : start = {}, duration = {}, due_date={}".format(tasks[keys][0],duration,due_date))
+                                if (tasks[keys][0] + tasks[keys][2] > tasks[keys][-1]) : 
+                                    #print('Due Date violated for node !', i)
+                                    tasks[keys][1] = 99999
+                                else :
+                                    tasks[keys][1] += len(check_dispo)
                     else : 
                         ok = True
                         ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
                         
+                        
                 #if start >= max_start:
                 #    print('Due Date eviolated for node !', i)
                 #    error = True
-                 
+                
+                #print("edge [{}-{}] : start = {}, duration = {}, due_date={}".format(current,nxt,start,duration,due_date))
+                end = start + length + duration
                 if (start + duration > due_date):
                     print('Due Date violated for node !', i)
-                    error = True
-                    
-                tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,eva_rate])
+                    end = 99999
+                
+                
+                tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,end,duration,eva_rate,due_date])
         
                 start += length
             current = nxt
             
 #         print('ressources info after evacuation of node {} with rate{} = {}'.format(i,max_rate,ressources))
         
-#    print('tasks = ', tasks)
+    #print('tasks = ', tasks)
 #     print('Nb of tasks = ',len(tasks))
     
     end_time = np.max([tasks[keys][1] for keys in tasks])
@@ -405,8 +419,6 @@ def get_end_time_3(LIST_EVA_NODES,EVA_TREE,GRAPH) :
 #         for key in tasks : 
 #             if  ('Evacuees from {} at edge [{}-'.format(i,i) in key or ('Evacuees from {} at edge'.format(i) in key and '-{}]'.format(i) in key)) :
 #                 print(i,key, tasks[key])
-    if error:
-        end_time = 999999
         
     return end_time,solution
 
