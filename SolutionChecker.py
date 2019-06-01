@@ -42,16 +42,11 @@ def verify_solution(data_path,solution_path) :
     NB_EDGES = len(GRAPH)
     LIST_EVA_NODES = [item[0] for item in EVA_TREE]
     
-#     print_data(data_path)
-#     print_solution(solution_path)
     print('CREATION TASKS & VERIFY CONSTRAINTS')
-#     print('-----------------------------')
     ressources = {}
     for edge in GRAPH :
         edge_cap = edge[-1]
-#         print('max cap of edge [{}-{}] : {}'.format(edge[0],edge[1],edge_cap))
         ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(500,edge_cap))
-#         print(ressources)
     
     tasks = {}
     for i in LIST_EVA_NODES : 
@@ -61,11 +56,8 @@ def verify_solution(data_path,solution_path) :
         if rate > max_rate : 
             result = False
             print('Error on EVA_RATE')
-#             exit(0)
             return result
-#         print('task {},rate={},start={}'.format(i,rate,start))
         duration,demande_res,rate = get_task(i,EVA_TREE,GRAPH,None)
-#         print(duration,demande_res)
         current = i
         for j in demande_res : 
 
@@ -77,28 +69,19 @@ def verify_solution(data_path,solution_path) :
                 else:
                     x = current
                     y = nxt
-#                 print('Evacuees from {} at edge [{}-{}]'.format(i,x,y))
-                #_,length,edge_cap = get_edge_info(current,nxt,GRAPH)
-                #tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,rate])
-                #dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
+
                 due_date,length,edge_cap = get_edge_info(x,y,GRAPH)
                 tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,x,y), [start,start+length+duration,duration,rate])
                 dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(x,y)]))
-                #if current < nxt :
-                #    dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
-                #else :
-                #    dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
+
                 
                 dispo[start:start+duration] -= rate
-#                 print('dispo[{}-{}]='.format(current,nxt),dispo)
                 check_dispo = [item for item in dispo if item < 0]
                 if (len(check_dispo) > 0) : 
                     print('TOO MANY PERSONS AT EDGE [{}-{}] !!!'.format(x,y))
                     result = False
-#                     exit(0)
                     print('ERROR ON EDGE CAPACITY')
                     return result
-#                 assert(dispo.all() >= 0)
                 else :
                     ressources['Cap of edge[{}-{}]'.format(x,y)] = dispo
             
@@ -110,16 +93,7 @@ def verify_solution(data_path,solution_path) :
                 start += length
             current = nxt
             
-#     print('ressources info after evacuation = ',ressources)        
-#     print('tasks = ', tasks)
-#     solution = create_solution(tasks,LIST_EVA_NODES)
-#     print(solution)
 
-#     print('Nb of tasks = ',len(tasks))
-#     for i  in LIST_EVA_NODES :
-#         for key in tasks : 
-#             if  ('Evacuees from {} at edge [{}-'.format(i,i) in key or ('Evacuees from {} at edge'.format(i) in key and '-{}]'.format(i) in key)) :
-#                 print(i,key, tasks[key])
     print('-----------------------------')
     print('CHECK F_OBJECTIF')
     print('-----------------------------')
@@ -133,6 +107,7 @@ def verify_solution(data_path,solution_path) :
     else :
         result = False
         print('ERROR ON F_OBJECTIF')
+        
     print(result)
     print('-----------------------------')
     print('END')
@@ -213,16 +188,7 @@ def check_a_solution(data_path,SOLUTION) :
                 start += length
             current = nxt
             
-#     print('ressources info after evacuation = ',ressources)        
-#     print('tasks = ', tasks)
-#     solution = create_solution(tasks,LIST_EVA_NODES)
-#     print(solution)
 
-#     print('Nb of tasks = ',len(tasks))
-#     for i  in LIST_EVA_NODES :
-#         for key in tasks : 
-#             if  ('Evacuees from {} at edge [{}-'.format(i,i) in key or ('Evacuees from {} at edge'.format(i) in key and '-{}]'.format(i) in key)) :
-#                 print(i,key, tasks[key])
     print('-----------------------------')
     print('CHECK F_OBJECTIF')
     print('-----------------------------')
