@@ -132,60 +132,82 @@ def get_duration(node_id,eva_tree,graph) :
     return int(E_tmp)
 
 
-def get_end_time_beta(list_eva_nodes,eva_tree,graph) : 
+def get_end_time(list_eva_nodes,eva_tree,graph) : 
     ## Initialize the ressources 
     ressources = {}
     for edge in graph :
         edge_cap = edge[-1]
-        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(1000,edge_cap))   
+        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(500,edge_cap))   
+        
     ## Arrange the tasks 
     tasks = {}
     for i in list_eva_nodes : 
-        start = 0
+#         print('Test for node ',i)
+        cap_ok = False
+        delay_time = 0
+        while(not cap_ok) :
+            start = 0
+            ## find delay_time
+            ## arrange the following tasks with the start+delay_time
+            duration,demande_res,eva_rate = get_task(i,eva_tree,graph)
+            current = i
+            for j in demande_res : 
+                nxt = j
+                if current != nxt :
+                    due_date,length,edge_cap = get_edge_info(current,nxt,graph)
+                    if current < nxt :
+                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
+                    else : 
+                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
+                    dispo[start+delay_time:start+delay_time+duration] -= eva_rate
+                    check_dispo = [item for item in dispo if item<0]
+                    if len(check_dispo) > 0 :
+#                         print('Overload [{}-{}] : '.format(current,nxt),dispo)
+                        delay_time += len(check_dispo)
+                        cap_ok = False
+                        break
+                    else : 
+                        cap_ok = True
+#                         print('OK [{}-{}] with delay = {}'.format(current,nxt,delay_time))
+                    start += length
+                current = j
+                
+#         print(delay_time)
+        start = delay_time
         duration,demande_res,eva_rate = get_task(i,eva_tree,graph)
         current = i
         for j in demande_res : 
             nxt = j
             if current != nxt :
                 due_date,length,edge_cap = get_edge_info(current,nxt,graph)
-                ## Check the capacity constraints
-                ok = False
-                while (not ok) :
-                    if current < nxt :
-                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
-                    else : 
-                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
-                    dispo[start:start+duration] -= eva_rate
-                    check_dispo = [item for item in dispo if item < 0]
-                    if (len(check_dispo) > 0) :   
-                        ## Shift the task if overload
-                        start += len(check_dispo) 
-                        ok = False
-                        ## Change the time start of the previous nodes 
-                        for keys in tasks :
-                            if 'Evacuees from {}'.format(i) in keys :
-                                tasks[keys][0] += len(check_dispo)
-                                tasks[keys][1] += len(check_dispo)
-                    else : 
-                        ok = True
-                        ## Suppose that all the previous edges are ok
-                        ## Update the ressources of the current edge
-                        if current < nxt :
-                            ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
-                        else : 
-                            ressources['Cap of edge[{}-{}]'.format(nxt,current)] = dispo
-                        
-                ## Add info of a task
-                tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,eva_rate,due_date])  
+                if current < nxt :
+                    dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
+                else : 
+                    dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
+                dispo[start:start+duration] -= eva_rate
+                check_dispo = [item for item in dispo if item<0]
+#                 if len(check_dispo) > 0 :
+#                     print('Overload! [{}-{}] : '.format(current,nxt))
+                ## Update the ressources of the current edge
+                if current < nxt :
+                    ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
+                else : 
+                    ressources['Cap of edge[{}-{}]'.format(nxt,current)] = dispo
+                tasks['Evacuees from {} at edge [{}-{}]'.format(i,current,nxt)] = [start,start+length+duration,duration,eva_rate,due_date,dispo]
                 start += length
-            current = nxt  
+            current = j
+    
+#         print('After node',i,' res = ',ressources)
+#     print('tasks = ', tasks)
+#     print('Nb of tasks = ',len(tasks))
     end_time = np.max([tasks[keys][1] for keys in tasks])
+#     print([tasks[keys][1] for keys in tasks])
+#    print('End time is : ',end_time)
     solution = create_solution(tasks,list_eva_nodes)
- 
     return end_time,solution
 
 
-def get_end_time(list_eva_nodes,eva_tree,graph) : 
+def get_end_time_alpha(list_eva_nodes,eva_tree,graph) : 
     ## Initialize the ressources 
     ressources = {}
     for edge in graph :
@@ -215,33 +237,38 @@ def get_end_time(list_eva_nodes,eva_tree,graph) :
                     else : 
                         dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
                     
-                      
                     dispo[start:start+duration] -= eva_rate
                     if shift_time > 0 :
                         dispo[start-dist:start-dist+duration] += eva_rate
 #                         print(start-shift_time,start-shift_time+duration)
 #                     print('Cap of edge[{}-{}] = {}'.format(current,nxt,dispo))
                     ## Update the ressources of the current edge
-                    ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
-                    if shift_time == 0 :
-                        tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,eva_rate,due_date,dispo])
-                    else :
-                        tasks['Evacuees from {} at edge [{}-{}]'.format(i,current,nxt)] = [start,start+length+duration,duration,eva_rate,due_date,dispo]
+                    if current < nxt :
+                        ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
+                    else : 
+                        ressources['Cap of edge[{}-{}]'.format(nxt,current)] = dispo
+                    
+                    
+#                     if shift_time == 0 :
+#                         tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,eva_rate,due_date,dispo])
+#                     else :
+                    tasks['Evacuees from {} at edge [{}-{}]'.format(i,current,nxt)] = [start,start+length+duration,duration,eva_rate,due_date,dispo]
                     
                     start += length
                 current = j
-                
+
             ## check the capacity constraints with this time start
-            stop = False
+#             stop = False
             
             for key in tasks :
-                if not stop and 'Evacuees from {}'.format(i) in key :
+                if 'Evacuees from {}'.format(i) in key :
                     check_dispo = [item for item in tasks[key][5] if item<0]
                     if len(check_dispo) > 0 :
                         shift_time += len(check_dispo)
                         dist = len(check_dispo)
-                        stop = True
+#                         stop = True
                         cap_ok = False
+                        break
                     else :
                         cap_ok = True
                 ## return cap_ok and shift_time 

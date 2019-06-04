@@ -74,7 +74,6 @@ def verify_solution(data_path,solution_path) :
                 tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,x,y), [start,start+length+duration,duration,rate])
                 dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(x,y)]))
 
-                
                 dispo[start:start+duration] -= rate
                 check_dispo = [item for item in dispo if item < 0]
                 if (len(check_dispo) > 0) : 

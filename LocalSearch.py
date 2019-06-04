@@ -88,6 +88,7 @@ def LocalSearchRun(init_solution,EVA_TREE,GRAPH,n_iter=10) :
     while (ite < n_iter and not_move < 5) :
         print("Iteration {}:".format(ite))
         print(ordered_list_of_sol,' => ',endtime)
+
         neighbor_list = get_neighbors_of(ordered_list_of_sol, EVA_TREE, GRAPH)
         for neighbor in neighbor_list :  
             ## find the best neighbor
@@ -126,6 +127,7 @@ def LocalSearchRandomStart(EVA_TREE,GRAPH,n_iter=10,n_start_points=5) :
         endtime,best_solution = LocalSearchRun(init_solution,EVA_TREE,GRAPH,n_iter)
         sol_list.append(best_solution)
         endtime_list.append(endtime)
+        
         
     
     endtime = np.min(endtime_list)
