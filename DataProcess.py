@@ -186,9 +186,6 @@ def get_end_time(list_eva_nodes,eva_tree,graph) :
                     dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
                 dispo[start:start+duration] -= eva_rate
                 check_dispo = [item for item in dispo if item<0]
-#                 if len(check_dispo) > 0 :
-#                     print('Overload! [{}-{}] : '.format(current,nxt))
-                ## Update the ressources of the current edge
                 if current < nxt :
                     ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
                 else : 
@@ -197,90 +194,10 @@ def get_end_time(list_eva_nodes,eva_tree,graph) :
                 start += length
             current = j
     
-#         print('After node',i,' res = ',ressources)
-#     print('tasks = ', tasks)
-#     print('Nb of tasks = ',len(tasks))
+
     end_time = np.max([tasks[keys][1] for keys in tasks])
-#     print([tasks[keys][1] for keys in tasks])
-#    print('End time is : ',end_time)
     solution = create_solution(tasks,list_eva_nodes)
     return end_time,solution
-
-
-def get_end_time_alpha(list_eva_nodes,eva_tree,graph) : 
-    ## Initialize the ressources 
-    ressources = {}
-    for edge in graph :
-        edge_cap = edge[-1]
-        ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(500,edge_cap))   
-        
-    ## Arrange the tasks 
-    tasks = {}
-    for i in list_eva_nodes : 
-        cap_ok = False
-        shift_time = 0
-        dist = 0
-        while(not cap_ok) :
-            start = shift_time
-
-            ## arrange the following tasks with the start
-            duration,demande_res,eva_rate = get_task(i,eva_tree,graph)
-            current = i
-            
-            for j in demande_res : 
-                nxt = j
-                if current != nxt :
-                    due_date,length,edge_cap = get_edge_info(current,nxt,graph)
-                        
-                    if current < nxt :
-                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
-                    else : 
-                        dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
-                    
-                    dispo[start:start+duration] -= eva_rate
-                    if shift_time > 0 :
-                        dispo[start-dist:start-dist+duration] += eva_rate
-#                         print(start-shift_time,start-shift_time+duration)
-#                     print('Cap of edge[{}-{}] = {}'.format(current,nxt,dispo))
-                    ## Update the ressources of the current edge
-                    if current < nxt :
-                        ressources['Cap of edge[{}-{}]'.format(current,nxt)] = dispo
-                    else : 
-                        ressources['Cap of edge[{}-{}]'.format(nxt,current)] = dispo
-                    
-                    
-#                     if shift_time == 0 :
-#                         tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,eva_rate,due_date,dispo])
-#                     else :
-                    tasks['Evacuees from {} at edge [{}-{}]'.format(i,current,nxt)] = [start,start+length+duration,duration,eva_rate,due_date,dispo]
-                    
-                    start += length
-                current = j
-
-            ## check the capacity constraints with this time start
-#             stop = False
-            
-            for key in tasks :
-                if 'Evacuees from {}'.format(i) in key :
-                    check_dispo = [item for item in tasks[key][5] if item<0]
-                    if len(check_dispo) > 0 :
-                        shift_time += len(check_dispo)
-                        dist = len(check_dispo)
-#                         stop = True
-                        cap_ok = False
-                        break
-                    else :
-                        cap_ok = True
-                ## return cap_ok and shift_time 
-
-#     print('tasks = ', tasks)
-#     print('Nb of tasks = ',len(tasks))
-    end_time = np.max([tasks[keys][1] for keys in tasks])
-#     print([tasks[keys][1] for keys in tasks])
-#    print('End time is : ',end_time)
-    solution = create_solution(tasks,list_eva_nodes)
-    return end_time,solution
-
 
 
 def get_latest_starttime(node,eva_tree,graph):
@@ -299,14 +216,6 @@ def get_latest_starttime(node,eva_tree,graph):
         #print('R', res)
     return res - int(nb_evacuees/rate)
 
-#def get_list_priority(eva_tree,graph) : 
-#    list_eva_nodes = [item[0] for item in eva_tree]
-#    maxstart = [(get_latest_starttime(item,eva_tree,graph),item) for item in list_eva_nodes]
-#    print(maxstart)
-#    maxstart.sort()
-#    print(maxstart)
-#    result = [item[1] for item in maxstart]
-#    return result
 
 def sortSecond(x):
     return(x[1])
@@ -340,7 +249,7 @@ def find_starttime(x, sol):
 
 def create_solution_file(dataname,solution,end_time,algo_name,exc_time) : 
     
-    datapath = os.path.dirname(os.path.abspath('__file__')) +  '/InstancesInt/' + dataname + '.full'
+    datapath = os.path.dirname(os.path.abspath('__file__')) +  '/Instances/' + dataname + '.full'
     solutionpath = os.path.dirname(os.path.abspath('__file__')) + '/Solutions/' + dataname + '.solution'
 
     eva_tree, graph, _ = read_data(datapath)

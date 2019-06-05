@@ -23,44 +23,28 @@ def get_non_conflict_list(x, LIST_EVA_NODES,EVA_TREE,GRAPH):
     lx = get_task(x,EVA_TREE,GRAPH,eva_rate=None)[1]
     rate_x = get_task(x,EVA_TREE,GRAPH,eva_rate=None)[2]
     for node in LIST_EVA_NODES:
-        #print('Current checked node : ' + str(node))
+
         if x != node:
-            #print('OK1 is : ' + str(ok))
+
             ln = get_task(node,EVA_TREE,GRAPH,eva_rate=None)[1]
             rate_n = get_task(node,EVA_TREE,GRAPH,eva_rate=None)[2]
             lc = get_conflict_arc(lx, ln)
             if(len(lc) == 1):
-                #print('This node: ' + str(node) + ' has no conflict node rather than the final node')
+
                 res.append(node)
             else:
                 for i in range(len(lc)-1):
                     cap = get_edge_info(lc[i], lc[i+1], GRAPH)[2]
-                    #print('Current cap is : ' + str(cap))
-                    #print('rate_x + rate_n = ' + str(rate_x + rate_n))
-                    #if (cap >= rate_x + rate_n):
-                    #    print('This node: ' + str(node) + ' has Conflict at arc [' + str(lc[i]) + ' ' + str(lc[i+1]) + ']')
-                    #    print('Where cap is : ' + str(cap))
-                    #    print('And sum is : ' + str(rate_x + rate_n))
+
                     if (cap < rate_x + rate_n):
-                    #else:
-                        #print('This node: ' + str(node) + ' is conflicted')
                         ok = 0
                         break
-            #print('OK2 is : ' + str(ok))
             if (ok == 1):
-                #print('This node: ' + str(node) + ' passed the conflict route test')
+
                 res.append(node)
             ok = 1
     return res
                     
-#def get_removed(l1, l2):
-#    for item in l1:
-#        if not(item in l2):
-#            res = item
-#            break
-#    return res
-
-
 
 #exchange positions of 2 nodes in the ordered list  -> a neigbor 
 def get_neighbors_of(ordered_sol,EVA_TREE,GRAPH) : 

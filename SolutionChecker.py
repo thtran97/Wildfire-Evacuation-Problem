@@ -30,9 +30,9 @@ def print_solution(filename) :
     return 0
 
 def get_solution_info_of(node_id,SOLUTION) : 
-    [sol_info] = [item for item in SOLUTION if item[:][0] == node_id]
-    eva_rate = sol_info[1]
-    t_start = sol_info[2]
+    sol_info = [item for item in SOLUTION if item[:][0] == node_id]
+    eva_rate = sol_info[0][1]
+    t_start = sol_info[0][2]
     return eva_rate,t_start
 
 def verify_solution(data_path,solution_path) : 
@@ -84,10 +84,10 @@ def verify_solution(data_path,solution_path) :
                 else :
                     ressources['Cap of edge[{}-{}]'.format(x,y)] = dispo
             
-                #if (start + duration > due_date) : 
-                #    result = False
-                #    print('ERROR ON DUE DATE [{}-{}]'.format(x,y))
-                #    return result
+                if (start + duration > due_date) : 
+                    result = False
+                    print('ERROR ON DUE DATE [{}-{}]'.format(x,y))
+                    return result
                     
                 start += length
             current = nxt
@@ -127,9 +127,7 @@ def check_a_solution(data_path,SOLUTION) :
     ressources = {}
     for edge in GRAPH :
         edge_cap = edge[-1]
-#         print('max cap of edge [{}-{}] : {}'.format(edge[0],edge[1],edge_cap))
         ressources.setdefault('Cap of edge[{}-{}]'.format(edge[0],edge[1]),np.full(500,edge_cap))
-#         print(ressources)
     
     tasks = {}
     for i in LIST_EVA_NODES : 
@@ -138,11 +136,8 @@ def check_a_solution(data_path,SOLUTION) :
         if rate > max_rate : 
             result = False
             print('Error on EVA_RATE')
-#             exit(0)
             return result
-#         print('task {},rate={},start={}'.format(i,rate,start))
         duration,demande_res,rate = get_task(i,EVA_TREE,GRAPH,None)
-#         print(duration,demande_res)
         current = i
         for j in demande_res : 
 
@@ -154,28 +149,21 @@ def check_a_solution(data_path,SOLUTION) :
                 else:
                     x = current
                     y = nxt
-#                 print('Evacuees from {} at edge [{}-{}]'.format(i,x,y))
-                #_,length,edge_cap = get_edge_info(current,nxt,GRAPH)
-                #tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,current,nxt), [start,start+length+duration,duration,rate])
-                #dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
+
                 due_date,length,edge_cap = get_edge_info(x,y,GRAPH)
                 tasks.setdefault('Evacuees from {} at edge [{}-{}]'.format(i,x,y), [start,start+length+duration,duration,rate])
                 dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(x,y)]))
-                #if current < nxt :
-                #    dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(current,nxt)]))
-                #else :
-                #    dispo = np.copy(np.array(ressources['Cap of edge[{}-{}]'.format(nxt,current)]))
+
                 
                 dispo[start:start+duration] -= rate
-#                 print('dispo[{}-{}]='.format(current,nxt),dispo)
                 check_dispo = [item for item in dispo if item < 0]
                 if (len(check_dispo) > 0) : 
                     print('TOO MANY PERSONS AT EDGE [{}-{}] !!!'.format(x,y))
                     result = False
-#                     exit(0)
+
                     print('ERROR ON EDGE CAPACITY')
                     return result
-#                 assert(dispo.all() >= 0)
+
                 else :
                     ressources['Cap of edge[{}-{}]'.format(x,y)] = dispo
             
