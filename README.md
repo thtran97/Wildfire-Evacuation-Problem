@@ -9,7 +9,7 @@ The precise problem was a evacuation plan in case of wildfire. "A good evacuatio
  
 In this project we just focus on minmizing the total evacuation time, also respecting all the capacity constraints and due date constraints with the given instances.
 
-We also would like to thank you our tutor, Mme. Marie-Jo HUGET, for your helps and your adivces when we are working on this project.  
+We also would like to thank you our tutors, Mrs. Marie-Jo HUGET and M.Tom Portoleau, for your helps and your adivces when we are working on this project.  
 
 ## Documentation
 
