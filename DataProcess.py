@@ -299,15 +299,25 @@ def get_latest_starttime(node,eva_tree,graph):
         #print('R', res)
     return res - int(nb_evacuees/rate)
 
-def get_list_priority(eva_tree,graph) : 
-    list_eva_nodes = [item[0] for item in eva_tree]
-    maxstart = [(get_latest_starttime(item,eva_tree,graph),item) for item in list_eva_nodes]
-    print(maxstart)
-    maxstart.sort()
-    print(maxstart)
-    result = [item[1] for item in maxstart]
-    return result
+#def get_list_priority(eva_tree,graph) : 
+#    list_eva_nodes = [item[0] for item in eva_tree]
+#    maxstart = [(get_latest_starttime(item,eva_tree,graph),item) for item in list_eva_nodes]
+#    print(maxstart)
+#    maxstart.sort()
+#    print(maxstart)
+#    result = [item[1] for item in maxstart]
+#    return result
 
+def sortSecond(x):
+    return(x[1])
+
+def get_list_priority(eva_tree,graph):
+    list_eva_nodes = [[item[0]] for item in eva_tree]
+    for item in list_eva_nodes:
+        item.append(get_duration(item[0],eva_tree,graph))
+    list_eva_nodes.sort(key = sortSecond, reverse = True)
+    res = [item[0] for item in list_eva_nodes]
+    return res
 
 
 def get_borne_inf(list_eva_nodes,eva_tree,graph) : 
@@ -315,7 +325,8 @@ def get_borne_inf(list_eva_nodes,eva_tree,graph) :
     return np.max(eva_time)
 
 def get_borne_sup(eva_tree,graph) :
-    endtime,sol = get_end_time(get_list_priority(eva_tree.graph),eva_tree,graph)
+    list_eva_node = get_list_priority(eva_tree,graph)
+    endtime,sol = get_end_time(list_eva_node,eva_tree,graph)
     return endtime,sol
 
 
