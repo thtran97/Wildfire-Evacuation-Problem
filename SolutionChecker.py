@@ -84,10 +84,10 @@ def verify_solution(data_path,solution_path) :
                 else :
                     ressources['Cap of edge[{}-{}]'.format(x,y)] = dispo
             
-                if (start + duration > due_date) : 
-                    result = False
-                    print('ERROR ON DUE DATE [{}-{}]'.format(x,y))
-                    return result
+                #if (start + duration > due_date) : 
+                #    result = False
+                #    print('ERROR ON DUE DATE [{}-{}]'.format(x,y))
+                #    return result
                     
                 start += length
             current = nxt
